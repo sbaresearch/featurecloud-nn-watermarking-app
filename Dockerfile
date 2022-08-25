@@ -13,6 +13,8 @@ RUN pip3 install -r ./app/requirements.txt
 
 COPY . /app
 
+ADD ./datasets/ datasets/
+
 EXPOSE 9000 9001
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
