@@ -8,5 +8,7 @@ pyyaml
 pillow
 tqdm
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.10.2+cpu
+torch==1.12.1+cpu
+torchvision==0.13.1
 timm
+scipy

@@ -4,8 +4,14 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-def train(model, train_loader, optimizer, criterion, device):
+def train(model, train_loader, optimizer, criterion, device, turn_off_bn):
     model.train()
+    if turn_off_bn:
+        for m in model.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+                for parameters in m.parameters():
+                    parameters.requires_grad = False
 
     run_loss = 0.0
     run_correct = 0
@@ -23,7 +29,7 @@ def train(model, train_loader, optimizer, criterion, device):
         loss = criterion(outputs, labels)
 
         run_loss += loss.item()
-        _, predictions = torch.max(outputs.data, 1)
+        _, predictions = torch.max(outputs, 1)
         run_correct += (predictions == labels).sum().item()
 
         loss.backward()
@@ -59,9 +65,10 @@ def test(model, test_loader, criterion, device):
     return epoch_loss, epoch_acc
 
 def embed(model, trigger_set, wm_th, batch_size, optimizer_name, 
-                                      lr, momentum, max_epochs):
+                            lr, momentum, max_epochs, turn_off_bn):
     
-    data_loader = DataLoader(trigger_set, batch_size=batch_size, shuffle=False, num_workers=4)
+    train_loader = DataLoader(trigger_set, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=4)
+    test_loader = DataLoader(trigger_set, batch_size=batch_size, shuffle=False, num_workers=4)
 
     assert (optimizer_name in ['sgd', 'adam'])
     if optimizer_name == 'adam':
@@ -77,16 +84,14 @@ def embed(model, trigger_set, wm_th, batch_size, optimizer_name,
     current_epoch = 0
     train_loss, train_acc = 0, 0
     wm_loss, wm_acc = 0, 0
-    while current_epoch <= max_epochs and wm_acc < wm_th:
+    while current_epoch < max_epochs and wm_acc < wm_th:
         current_epoch += 1
 
-        train_loss, train_acc = train(model, data_loader, optimizer, criterion, device)
-        wm_loss, wm_acc = test(model, data_loader, criterion, device)
+        train_loss, train_acc = train(model, train_loader, optimizer, criterion, device, turn_off_bn)
+        wm_loss, wm_acc = test(model, test_loader, criterion, device)
 
         print(f'Epoch {current_epoch}')
-        print(f'Training loss: {train_loss}; test loss: {wm_loss})')
+        print(f'Training loss: {train_loss}; test loss: {wm_loss}')
         print(f'Train accuracy: {train_acc}; wm accuracy: {wm_acc}')
 
-
-    return model, current_epoch, wm_acc
-       
+    return model, current_epoch, wm_acc 

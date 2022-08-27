@@ -19,42 +19,30 @@ In the config file the following information should be provided:
 - **architecture** (default *'resnet34'*)  
   The architecture of the model. Models from *timm* package are supported. The given name should be the same as the one used in *timm* for that architecture type.
 
+- **turn_off_batch_norm** (defaul *false*)
+  Turns off batch normalization for training stage. Learnable parameters are not updated.
+
 #### Watermarking Parameters
 - **wm_type** (default *'ood_abstract'*)  
   A watermark embedding method. Currently, three methods are supported:
    - *'ood_abstract'*  
    Implements an approach described in the paper [Turning Your Weakness Into a Strength: Watermarking Deep Neural Networks by Backdooring](https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-adi.pdf). The dataset used for watermarking is given within the app. The number of trigger images (see below) should not exceed 100.
    - *'ood_torchvision'*  
-  Implements an approach described in the paper [Protecting Intellectual Property of Deep Neural Networks with Watermarking](https://www.doi.org/10.1145/3196494.3196550). In the paper, only MNIST and CIFAR10 were considered as trigger datasets. This app supports the majority of *torchvision* image datasets:
-      -     'caltech101': torchvision.datasets.Caltech101,
-      -     'caltech256': torchvision.datasets.Caltech256,
-      -     'celeba': torchvision.datasets.CelebA,
-      -     'cifar10': torchvision.datasets.CIFAR10,
-      -     'cifar100': torchvision.datasets.CIFAR100,
-      -     'cityscapes': torchvision.datasets.Cityscapes,
-      -     'coco': torchvision.datasets.CocoDetection,
-      -     'emnist': torchvision.datasets.EMNIST,
-      -     'fakedata': torchvision.datasets.FakeData,
-      -     'fmnist': torchvision.datasets.FashionMNIST,
-      -     'flickr': torchvision.datasets.Flickr8k,
-      -     'inaturalist': torchvision.datasets.INaturalist,
-      -     'kitti': torchvision.datasets.Kitti,
-      -     'kmnist': torchvision.datasets.KMNIST,
-      -     'lfw': torchvision.datasets.LFWPeople,
-      -     'lsun': torchvision.datasets.LSUN,
-      -     'mnist': torchvision.datasets.MNIST,
-      -     'omniglot': torchvision.datasets.Omniglot,
-      -     'phototour': torchvision.datasets.PhotoTour,
-      -     'place365': torchvision.datasets.Places365,
-      -     'qmnist': torchvision.datasets.QMNIST,
-      -     'sbd': torchvision.datasets.SBDataset,
-      -     'sbu': torchvision.datasets.SBU,
-      -     'semeion': torchvision.datasets.SEMEION,
-      -     'stl10': torchvision.datasets.STL10,
-      -     'svhn': torchvision.datasets.SVHN,
-      -     'usps': torchvision.datasets.USPS,
-      -     'voc': torchvision.datasets.VOCDetection,
-      -     'widerface': torchvision.datasets.WIDERFace.
+  Implements an approach described in the paper [Protecting Intellectual Property of Deep Neural Networks with Watermarking](https://www.doi.org/10.1145/3196494.3196550). In the paper, only MNIST and CIFAR10 were considered as trigger datasets. This app supports the following *torchvision* datasets:
+  ```
+      'caltech101': torchvision.datasets.Caltech101,
+      'cifar10': torchvision.datasets.CIFAR10,
+      'cifar100': torchvision.datasets.CIFAR100,
+      'fmnist': torchvision.datasets.FashionMNIST,
+      'kmnist': torchvision.datasets.KMNIST,
+      'lfw': torchvision.datasets.LFWPeople,
+      'mnist': torchvision.datasets.MNIST,
+      'omniglot': torchvision.datasets.Omniglot,
+      'qmnist': torchvision.datasets.QMNIST,
+      'semeion': torchvision.datasets.SEMEION,
+      'svhn': torchvision.datasets.SVHN,
+      'usps': torchvision.datasets.USPS.
+  ```
    - *'custom'*  
   Train a model on a custom trigger set. For this method, additional hyperparameters should be provided (see below).
 - **wm_classes** (default *[0]*)  
@@ -89,6 +77,7 @@ The size of the trigger set.
 The size of input images (should correspond to the model architecture).
 - **num_channels** (default *3*)  
 The number of input channels (should correspond to the model architecture).
+Currently, 3-channel and 1-channel datasets are supported. 
 - **num_classes** (default *10*)  
 The number of classes (should correspond to the model architecture).
 - **mean** (default *null*)  

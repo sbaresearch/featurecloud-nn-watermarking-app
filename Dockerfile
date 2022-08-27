@@ -11,9 +11,9 @@ COPY server_config/docker-entrypoint.sh /entrypoint.sh
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install -r ./app/requirements.txt
 
-COPY . /app
-
 ADD ./datasets/ datasets/
+
+COPY . /app
 
 EXPOSE 9000 9001
 

@@ -74,6 +74,7 @@ class EmbeddingState(AppState):
 
         model_path = 'mnt/input/'+model_info['model_name']
         architecture = model_info['architecture']
+        turn_off_bn = model_info['turn_off_batch_norm']
         
         dataset_name = data_info.get('dataset_name')
         dataset_folder = data_info.get('dataset_folder')
@@ -96,16 +97,15 @@ class EmbeddingState(AppState):
         momentum = wm_settings.get('momentum', 0.9)
         max_epochs = wm_settings.get('max_epochs', 100)
         
-        #TODO: add asserts!
         dataset_path = dataset_folder if not dataset_folder else '/mnt/input/' + dataset_folder
-        trigger_set = get_dataset(wm_type, trigger_set_size, num_classes, wm_classes,
+        trigger_set = get_dataset(wm_type, trigger_set_size, num_classes, num_channels, wm_classes,
                                 height, width, mean, std, dataset_name=dataset_name, 
                                 dataset_path=dataset_path, extensions=data_extensions)
 
         save_trigger_set(trigger_set, '/mnt/output')
         model = load_model(model_path, architecture, num_channels, num_classes)
         wm_model, epochs, acc = embed(model, trigger_set, wm_th, batch_size, optimizer, 
-                                      lr, momentum, max_epochs)
+                                      lr, momentum, max_epochs, turn_off_bn)
 
         save_model(wm_model, 'mnt/output')
         self.broadcast_data({'epochs': epochs, 'wm_accuracy': acc})  
@@ -127,5 +127,4 @@ class OutputState(AppState):
         epochs = train_data.get('epochs', -1)
         wm_acc = train_data.get('wm_accuracy', 0)
         self.log(f'The model was trained for {epochs} epochs and reached {wm_acc} % accuracy on the trigger set')
-        # self.update(message=f'The model was trained for {epochs} epochs and reached {wm_acc} % accuracy on the trigger set')
         return 'terminal' 

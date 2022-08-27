@@ -8,6 +8,26 @@ import glob
 import random
 import torchvision
 
+class SetChannels:
+    def __init__(self, num_channels):
+        assert num_channels in (1, 3)
+        self.channels = num_channels
+
+    def __call__(self, tensor):
+        tensor_channels = tensor.size()[0]
+        assert tensor_channels in (1, 3)
+        if tensor_channels == self.channels:
+            return tensor
+        
+        if tensor_channels == 3:
+            assert self.channels == 1
+            return transforms.functional.rgb_to_grayscale(tensor, self.channels)
+            
+        if tensor_channels == 1:
+            assert self.channels == 3
+            return torch.cat([tensor, tensor, tensor], dim=0)
+
+
 class TriggerDataset(Dataset):
     
     def __init__(self, dataset_path, trigger_set_size, wm_classes, transform, extensions=['.jpg', '.jpeg', '.png'], to_rgb=False):
@@ -81,40 +101,20 @@ def get_ood_torchvision(trigger_set_size, wm_classes, transform=None, dataset_na
 
     DATASETS = {
     'caltech101': torchvision.datasets.Caltech101,
-    'caltech256': torchvision.datasets.Caltech256,
-    'celeba': torchvision.datasets.CelebA,
+    # 'caltech256': torchvision.datasets.Caltech256,
+    # 'celeba': torchvision.datasets.CelebA,
     'cifar10': torchvision.datasets.CIFAR10,
     'cifar100': torchvision.datasets.CIFAR100,
-    'cityscapes': torchvision.datasets.Cityscapes,
-    'coco': torchvision.datasets.CocoDetection,
-    'emnist': torchvision.datasets.EMNIST,
-    'fakedata': torchvision.datasets.FakeData,
     'fmnist': torchvision.datasets.FashionMNIST,
-    'flickr': torchvision.datasets.Flickr8k,
-    'inaturalist': torchvision.datasets.INaturalist,
-    'kitti': torchvision.datasets.Kitti,
     'kmnist': torchvision.datasets.KMNIST,
     'lfw': torchvision.datasets.LFWPeople,
-    'lsun': torchvision.datasets.LSUN,
     'mnist': torchvision.datasets.MNIST,
     'omniglot': torchvision.datasets.Omniglot,
-    'phototour': torchvision.datasets.PhotoTour,
-    'place365': torchvision.datasets.Places365,
     'qmnist': torchvision.datasets.QMNIST,
-    'sbd': torchvision.datasets.SBDataset,
-    'sbu': torchvision.datasets.SBU,
     'semeion': torchvision.datasets.SEMEION,
-    'stl10': torchvision.datasets.STL10,
     'svhn': torchvision.datasets.SVHN,
-    'usps': torchvision.datasets.USPS,
-    'voc': torchvision.datasets.VOCDetection,
-    'widerface': torchvision.datasets.WIDERFace
+    'usps': torchvision.datasets.USPS
     }
-    # Not included (video datasets):
-    # HMDB51
-    # ImageNet
-    # Kinetics-400
-    # UCF101
 
     try:
         dataset = DATASETS[dataset_name.lower()](dataset_path, transform=transform, download=True)
@@ -130,7 +130,7 @@ def get_ood_torchvision(trigger_set_size, wm_classes, transform=None, dataset_na
     return TriggerSubset(subset, wm_classes)
 
 
-def get_dataset(wm_type, trigger_set_size, num_classes, wm_classes=None, height=224, width=224, mean=None, std=None, **kwargs):
+def get_dataset(wm_type, trigger_set_size, num_classes, num_channels, wm_classes=None, height=224, width=224, mean=None, std=None, **kwargs):
 
     WM_METHODS = {
         'custom': get_custom,
@@ -147,12 +147,14 @@ def get_dataset(wm_type, trigger_set_size, num_classes, wm_classes=None, height=
         transform = transforms.Compose([
             transforms.Resize(size=(height, width)),
             transforms.Normalize(mean, std),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            SetChannels(num_channels)
         ])
     else:
         transform = transforms.Compose([
             transforms.Resize(size=(height, width)),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            SetChannels(num_channels)
             ])
 
     try:
@@ -163,14 +165,31 @@ def get_dataset(wm_type, trigger_set_size, num_classes, wm_classes=None, height=
     return triggger_set
 
 if __name__ == '__main__':
+    datasets = [
+    'caltech101',
+    'caltech256',
+    'celeba',
+    'cifar10',
+    'cifar100',
+    'fmnist',
+    'kmnist',
+    'lfw',
+    'mnist',
+    'omniglot',
+    'qmnist',
+    'semeion',
+    'svhn', 
+    'usps'
+    ]
 
-    dataset = get_dataset('ood_abstract', 100, 10, [5, 7, 3], dataset_name='cifar10')
-    print(f'size of the trigger set {len(dataset)}')
+    for dataset_name in datasets:
+        dataset = get_dataset('ood_torchvision', 100, 10, [5, 7, 3], dataset_name=dataset_name)
+        print(f'size of the trigger set {len(dataset)}')
 
-    sample_id = random.randrange(len(dataset))
-    tensor, label = dataset[sample_id]
-    t = transforms.ToPILImage()
-    image = t(tensor)
-    image.show()
-    print(image)
-    print(label)
+        sample_id = random.randrange(len(dataset))
+        tensor, label = dataset[sample_id]
+        t = transforms.ToPILImage()
+        image = t(tensor)
+        image.show()
+        print(image)
+        print(label)
