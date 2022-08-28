@@ -1,6 +1,6 @@
-## FeatureCloud CNN Watermarking App
+## FeatureCloud NN Watermarking App
 
-This app embeds a watermark into a given CNN model. 
+This app embeds a watermark into a given NN model. 
 
 ### Client's data 
 
