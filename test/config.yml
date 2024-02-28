@@ -1,0 +1,31 @@
+fc_cnn_wm:
+  model: 
+    model_name: "model.pth"
+    architecture: "resnet34" # models from timm are supported
+    turn_off_batch_norm: true
+  data: 
+    dataset_name: null # required if wm_type is ood_torchvision
+    dataset_folder: null
+    data_extensions: null
+    trigger_set_size: 20
+    image_size: 
+      height: 224
+      width: 224
+    num_channels: 3
+    num_classes: 10
+    mean: null
+    std: null
+  wm_settings:
+    wm_type: "ood_abstract" # could be "ood_torchvision" (Weakness into strength), "ood_torchvision"(works like Protecting IP,  but with any torchvision dataset), "custom" (train on given data)
+    wm_classes: 
+      - 0
+      - 2
+      - 4
+    wm_th: 80 # accuracy threshold for wm verification
+    batch_size: 8
+    optimizer: 'sgd' # supported values: 'adam' or 'sgd'
+    lr: 0.001
+    momentum: 0.9 # if sgd with momentum is used
+    max_epochs: 15 # max number of epochs for training on the trigger set
+ 
+
